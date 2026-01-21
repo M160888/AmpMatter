@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # SignalK Server - Marine data aggregation
+  signalk:
+    image: signalk/signalk-server:latest
+    container_name: ampmatter-signalk
+    restart: unless-stopped
+    network_mode: host
+    privileged: true  # Required for serial/USB device access
+    volumes:
+      - ./signalk-data:/home/node/.signalk
+      - /dev:/dev  # Access to GPS and other serial devices
+    environment:
+      - SIGNALK_NODE_SETTINGS=/home/node/.signalk/settings.json
+
+  # Mosquitto MQTT Broker - For Victron and sensor data
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: ampmatter-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"   # MQTT
+      - "9001:9001"   # WebSocket
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    command: mosquitto -c /mosquitto/config/mosquitto.conf
+
+  # AmpMatter Web Application
+  ampmatter:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ampmatter-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../tiles:/app/tiles
+      - ../config:/app/config
+    environment:
+      - NODE_ENV=production
+      - SIGNALK_URL=ws://localhost:3000/signalk/v1/stream?subscribe=all
+      - MQTT_URL=ws://localhost:9001
+    depends_on:
+      - signalk
+      - mosquitto
+
+volumes:
+  signalk-data:
+  mosquitto-data:

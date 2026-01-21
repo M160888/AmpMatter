@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=AmpMatter Kiosk
+Comment=Marine Monitoring GUI
+Exec=/home/mario/AmpMatter/scripts/start-kiosk.sh
+Terminal=false
+Hidden=false
+X-GNOME-Autostart-enabled=true

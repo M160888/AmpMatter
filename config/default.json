@@ -1,0 +1,25 @@
+{
+  "signalk": {
+    "url": "ws://localhost:3000/signalk/v1/stream?subscribe=all"
+  },
+  "mqtt": {
+    "url": "ws://localhost:9001",
+    "topics": {
+      "victron": "N/+/+/#",
+      "sensors": "boat/#"
+    }
+  },
+  "map": {
+    "defaultCenter": [51.5074, -0.1278],
+    "defaultZoom": 14,
+    "tileSources": {
+      "osm": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      "openseamap": "https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png"
+    }
+  },
+  "alarms": {
+    "lowBattery": 20,
+    "shallowDepth": 3,
+    "highEngineTemp": 95
+  }
+}
