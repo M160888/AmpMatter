@@ -1,6 +1,7 @@
 import { VictronPanel } from '../victron/VictronPanel';
 import { ChartGrid } from '../common/MiniChart';
 import { useDataHistory } from '../../hooks/useDataHistory';
+import { useOrientation } from '../../hooks/useOrientation';
 import type { Theme } from '../../styles/theme';
 
 interface VictronViewProps {
@@ -9,6 +10,7 @@ interface VictronViewProps {
 
 export function VictronView({ theme }: VictronViewProps) {
   const { batterySOC, batteryVoltage, solarPower } = useDataHistory();
+  const orientation = useOrientation();
 
   const charts = [
     {
@@ -34,16 +36,22 @@ export function VictronView({ theme }: VictronViewProps) {
     },
   ];
 
+  const isLandscape = orientation === 'landscape';
+
   return (
     <div
       style={{
         width: '100%',
         backgroundColor: theme.colors.background,
         padding: theme.spacing.sm,
+        display: isLandscape ? 'grid' : 'block',
+        gridTemplateColumns: isLandscape ? '1fr 1fr' : undefined,
+        gap: theme.spacing.md,
+        alignItems: 'start',
       }}
     >
       {/* VictronPanel */}
-      <div style={{ marginBottom: theme.spacing.sm }}>
+      <div style={{ marginBottom: isLandscape ? 0 : theme.spacing.sm }}>
         <VictronPanel theme={theme} />
       </div>
 

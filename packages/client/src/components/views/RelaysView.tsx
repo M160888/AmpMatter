@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useAppSelector } from '../../store';
+import { useOrientation } from '../../hooks/useOrientation';
 import { RelaySwitch } from '../common/RelaySwitch';
 import type { Theme } from '../../styles/theme';
 
@@ -14,6 +15,7 @@ const MAX_SWITCHES_PER_PAGE = 8;
 
 export function RelaysView({ theme, onToggle }: RelaysViewProps) {
   const relays = useAppSelector((state) => state.relays);
+  const orientation = useOrientation();
   const [currentPage, setCurrentPage] = useState(0);
 
   const handleToggle = (id: string) => {
@@ -35,17 +37,26 @@ export function RelaysView({ theme, onToggle }: RelaysViewProps) {
     return enabledRelays.slice(start, start + MAX_SWITCHES_PER_PAGE);
   }, [enabledRelays, currentPage]);
 
-  // Calculate optimal grid layout based on number of switches
-  // On mobile portrait, we use 2 columns with more rows
+  // Calculate optimal grid layout based on number of switches and orientation
   const gridLayout = useMemo(() => {
     const count = paginatedRelays.length;
-    // Default to 2 columns for mobile-friendly layout
-    if (count <= 2) return { cols: 2, rows: 1 };
-    if (count <= 4) return { cols: 2, rows: 2 };
-    if (count <= 6) return { cols: 2, rows: 3 };
-    if (count <= 8) return { cols: 2, rows: 4 };
-    return { cols: 2, rows: 4 }; // Max 8
-  }, [paginatedRelays.length]);
+
+    if (orientation === 'landscape') {
+      // Landscape: More columns, fewer rows (better for short screens)
+      if (count <= 2) return { cols: 2, rows: 1 };
+      if (count <= 4) return { cols: 4, rows: 1 };
+      if (count <= 6) return { cols: 3, rows: 2 };
+      if (count <= 8) return { cols: 4, rows: 2 };
+      return { cols: 4, rows: 2 }; // Max 8
+    } else {
+      // Portrait: Standard 2-column layout (better for narrow screens)
+      if (count <= 2) return { cols: 2, rows: 1 };
+      if (count <= 4) return { cols: 2, rows: 2 };
+      if (count <= 6) return { cols: 2, rows: 3 };
+      if (count <= 8) return { cols: 2, rows: 4 };
+      return { cols: 2, rows: 4 }; // Max 8
+    }
+  }, [paginatedRelays.length, orientation]);
 
   return (
     <div
