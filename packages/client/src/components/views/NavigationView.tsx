@@ -1,8 +1,9 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import { Circle, Marker } from 'react-leaflet';
 import * as L from 'leaflet';
 import { useAppSelector, useAppDispatch } from '../../store';
 import { updateViewSettings } from '../../store/slices/settingsSlice';
+import { useOrientation } from '../../hooks/useOrientation';
 import { NauticalMap } from '../map/NauticalMap';
 import { CompactGauge } from '../common/CompactGauge';
 import { TextGauge } from '../common/TextGauge';
@@ -55,6 +56,24 @@ export function NavigationView({ theme }: NavigationViewProps) {
   const batterySettings = useAppSelector((state) => state.settings.batterySettings);
   const speedUnit = useAppSelector((state) => state.settings.viewSettings.speedUnit);
   const infoPanelHeight = useAppSelector((state) => state.settings.viewSettings.infoPanelHeight);
+  const orientation = useOrientation();
+
+  // Smart max height based on orientation
+  const maxPanelHeight = useMemo(() => {
+    // In landscape (short vertical space), limit max height more aggressively
+    // to preserve map visibility
+    if (orientation === 'landscape') {
+      return 250; // Keep at least 200px+ for map
+    }
+    return 400; // Portrait allows more vertical space
+  }, [orientation]);
+
+  // Ensure current height is valid for orientation
+  useEffect(() => {
+    if (infoPanelHeight > maxPanelHeight) {
+      dispatch(updateViewSettings({ infoPanelHeight: maxPanelHeight }));
+    }
+  }, [maxPanelHeight, infoPanelHeight, dispatch]);
 
   // Anchor state
   const anchorPosition = useAppSelector((state) => state.anchor.anchorPosition);
@@ -206,7 +225,7 @@ export function NavigationView({ theme }: NavigationViewProps) {
       <ResizablePanel
         initialHeight={infoPanelHeight}
         minHeight={100}
-        maxHeight={400}
+        maxHeight={maxPanelHeight}
         onHeightChange={handlePanelHeightChange}
         theme={theme}
       >
